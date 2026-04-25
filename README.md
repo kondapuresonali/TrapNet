@@ -1,22 +1,29 @@
 # 🕸 TrapNet — Cyber Intelligence System
 
-> A real-time phishing & malicious URL detection system powered by Machine Learning, VirusTotal API, WHOIS intelligence, and AI-generated threat analysis.
+> A real-time phishing & malicious URL detection system powered by Machine Learning, VirusTotal API, WHOIS intelligence, and Google Gemini AI threat analysis.
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python)
 ![Flask](https://img.shields.io/badge/Flask-3.1-black?style=flat-square&logo=flask)
 ![VirusTotal](https://img.shields.io/badge/VirusTotal-API-blue?style=flat-square)
+![Gemini](https://img.shields.io/badge/Google-Gemini_AI-orange?style=flat-square&logo=google)
 ![ML](https://img.shields.io/badge/ML-Scikit--Learn-orange?style=flat-square&logo=scikit-learn)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 
 ---
 
-## 📸 Demo
+## 📸 Screenshots
 
-| Scan Result | History & Charts |
-|---|---|
-| ![scan](https://via.placeholder.com/400x250/0e1122/a78bfa?text=Phishing+Detected) | ![history](https://via.placeholder.com/400x250/0e1122/00e096?text=Threat+Distribution) |
+### 🔍 Phishing Detected
+![Scan](screenshots/scan.png)
 
-> Replace the above placeholders with actual screenshots from your running app.
+### 📋 Bulk URL Scanner
+![Bulk](screenshots/bulk.png)
+
+### 📊 History & Threat Distribution
+![History](screenshots/history.png)
+
+### 🛡 Safety Precautions
+![Precautions](screenshots/precautions.png)
 
 ---
 
@@ -27,14 +34,14 @@
 | 🔍 **URL Scanner** | Analyzes any URL using 9+ rule-based heuristics |
 | 🛡 **VirusTotal Integration** | Queries 90+ security vendors in real-time |
 | 🤖 **ML Model** | TF-IDF + Logistic Regression trained on phishing dataset |
-| 🧠 **AI Explanation** | Claude API generates plain-English threat summaries |
+| 🧠 **Gemini AI Explanation** | Google Gemini generates plain-English threat summaries |
 | 📅 **WHOIS Domain Age** | Flags domains less than 30 days old via RDAP |
 | 🔒 **SSL Certificate Check** | Validates HTTPS and certificate details |
 | 🌐 **IP Geolocation** | Resolves IP and checks for suspicious hosting |
 | 🎯 **Typosquatting Detector** | Detects brand impersonation (paypa1, g00gle, etc.) |
 | 📋 **Bulk URL Scanner** | Scan up to 20 URLs at once with summary stats |
-| 📊 **Scan History + Charts** | Chart.js doughnut chart showing threat distribution |
-| ⬇ **PDF Export** | Download full threat report as a branded PDF |
+| 📊 **Scan History + Charts** | Chart.js doughnut showing threat distribution |
+| ⬇ **PDF Export** | Download full branded threat report as PDF |
 | 🕐 **Animated Loading** | 7-step scan progress animation |
 
 ---
@@ -46,12 +53,12 @@ TrapNet/
 ├── app.py                    # Main Flask application
 ├── dataset.csv               # Phishing URL training dataset
 ├── requirements.txt          # Python dependencies
-├── trapnet.db                # SQLite scan history (auto-created)
+├── Procfile                  # For Render deployment
 │
 ├── model/
 │   ├── model.py              # ML training script
-│   ├── model.pkl             # Trained model (generated)
-│   └── vectorizer.pkl        # TF-IDF vectorizer (generated)
+│   ├── model.pkl             # Trained model
+│   └── vectorizer.pkl        # TF-IDF vectorizer
 │
 ├── services/
 │   ├── virustotal_service.py # VirusTotal API integration
@@ -60,17 +67,17 @@ TrapNet/
 │   └── ip_service.py        # IP geolocation service
 │
 ├── static/
-│   └── style.css             # Dark cyber UI styles
+│   └── style.css             # Dark cyber UI
 │
 └── templates/
-    └── index.html            # Main frontend (HTML + JS)
+    └── index.html            # Frontend (HTML + JS + Chart.js)
 ```
 
 ---
 
-## ⚙️ Installation & Setup
+## ⚙️ Setup & Installation
 
-### 1. Clone the repository
+### 1. Clone the repo
 ```bash
 git clone https://github.com/YOUR_USERNAME/trapnet.git
 cd trapnet
@@ -85,136 +92,91 @@ pip install -r requirements.txt
 ```bash
 python model/model.py
 ```
-This generates `model/model.pkl` and `model/vectorizer.pkl`.
 
-### 4. Set your API keys
-
-**Option A — Environment variables (recommended):**
-```bash
-# Windows (PowerShell)
-$env:VT_API_KEY = "your_virustotal_key_here"
-$env:ANTHROPIC_API_KEY = "your_anthropic_key_here"
-
-# Mac / Linux
-export VT_API_KEY="your_virustotal_key_here"
-export ANTHROPIC_API_KEY="your_anthropic_key_here"
+### 4. Add API keys — create a `.env` file:
+```
+VT_API_KEY=your_virustotal_key_here
+GEMINI_API_KEY=your_gemini_key_here
 ```
 
-**Option B — Edit directly in `app.py`:**
-```python
-VT_API_KEY    = "your_virustotal_key_here"
-ANTHROPIC_KEY = "your_anthropic_key_here"
-```
-
-### 5. Run the app
+### 5. Run
 ```bash
 python app.py
+# Open http://localhost:5000
 ```
-Open [http://localhost:5000](http://localhost:5000)
 
 ---
 
-## 🔑 Getting Free API Keys
+## 🔑 Free API Keys
 
-### VirusTotal (for 90+ vendor scanning)
-1. Go to [virustotal.com](https://www.virustotal.com) → Sign up free
-2. Click your avatar → **API Key** → Copy
-3. Free tier: 4 requests/minute, 500/day
+### VirusTotal
+1. [virustotal.com](https://virustotal.com) → Sign up → Avatar → API Key
+2. Free: 4 req/min, 500/day
 
-### Anthropic Claude (for AI threat explanation)
-1. Go to [console.anthropic.com](https://console.anthropic.com) → Sign up
-2. Go to **API Keys** → Create Key → Copy
-3. Free $5 credits on signup (~500 AI explanations)
+### Google Gemini
+1. [aistudio.google.com](https://aistudio.google.com) → Sign in with Google
+2. Get API Key → Create → Copy
+3. Free: 1,500 req/day
 
 ---
 
-## 🧠 How the Threat Score Works
-
-TrapNet calculates a **0–100 risk score** by combining multiple signals:
+## 🧠 Threat Scoring
 
 ```
-Rule-based checks     → up to 40 pts
-  • No HTTPS          → +20
-  • Raw IP address    → +20
-  • @ in URL          → +20
-  • Suspicious TLD    → +15
-  • Brand keywords    → +8 each
-  • Brand impersonation → +30
-  • New domain (<30d) → +20
-  • Typosquatting     → +25
-
-ML Model (TF-IDF)     → up to 40 pts
-VirusTotal vendors    → up to 30 pts
-──────────────────────────────────────
-Final score capped at 100
+No HTTPS              +20 pts
+Raw IP in URL         +20 pts
+@ symbol in URL       +20 pts
+Brand impersonation   +30 pts
+New domain (<30 days) +20 pts
+Typosquatting         +25 pts
+Suspicious keywords   +8 pts each
+High-risk TLD         +15 pts
+ML Model (TF-IDF)     up to +40 pts
+VirusTotal vendors    up to +30 pts
+──────────────────────────────────
+Capped at 100
 ```
 
-| Score | Threat Level |
+| Score | Level |
 |---|---|
 | 0–14 | ✅ Safe |
 | 15–39 | 🟡 Low |
 | 40–69 | 🟠 Suspicious |
-| 70–100 | 🔴 High / Phishing |
+| 70–100 | 🔴 Phishing |
 
 ---
 
-## 🚀 Deployment
+## 🚀 Deploy on Render (Free)
 
-### Deploy on Render (free)
-1. Push code to GitHub
-2. Go to [render.com](https://render.com) → New Web Service
-3. Connect your GitHub repo
-4. Build command: `pip install -r requirements.txt`
-5. Start command: `python app.py`
-6. Add environment variables: `VT_API_KEY`, `ANTHROPIC_API_KEY`
-
-### Deploy frontend on Netlify (if separated)
-1. Go to [netlify.com](https://netlify.com) → New site from Git
-2. Connect repo → Deploy
+1. Push to GitHub
+2. [render.com](https://render.com) → New Web Service → Connect repo
+3. Build: `pip install -r requirements.txt`
+4. Start: `gunicorn app:app`
+5. Environment vars: `VT_API_KEY`, `GEMINI_API_KEY`
+6. Deploy → live at `https://trapnet.onrender.com`
 
 ---
 
 ## 📦 Tech Stack
 
-| Layer | Technology |
+| | |
 |---|---|
-| Backend | Python 3.10+, Flask 3.1 |
+| Backend | Python, Flask |
 | ML | Scikit-learn, TF-IDF, Logistic Regression |
 | Threat Intel | VirusTotal API v3, RDAP/WHOIS |
-| AI | Anthropic Claude Haiku API |
-| Frontend | HTML5, CSS3, Vanilla JS, Chart.js |
-| PDF Export | ReportLab |
-| Database | SQLite (scan history) |
-| Deployment | Render (backend), Netlify (frontend) |
+| AI | Google Gemini 1.5 Flash |
+| Frontend | HTML, CSS, Vanilla JS, Chart.js |
+| PDF | ReportLab |
+| Deploy | Render |
 
 ---
 
 ## 🔮 Roadmap
-
-- [ ] Chrome Extension for real-time link scanning
-- [ ] Email phishing header analyzer
+- [ ] Chrome Extension
+- [ ] Email phishing analyzer
 - [ ] Dark/Light mode toggle
-- [ ] User accounts with personal scan history
-- [ ] Webhook alerts for high-risk scans
-- [ ] REST API for third-party integrations
-
----
-
-## 🤝 Contributing
-
-Pull requests are welcome! For major changes, please open an issue first.
-
-1. Fork the repo
-2. Create your feature branch: `git checkout -b feature/my-feature`
-3. Commit your changes: `git commit -m 'Add my feature'`
-4. Push to the branch: `git push origin feature/my-feature`
-5. Open a Pull Request
-
----
-
-## 📄 License
-
-MIT License — free to use, modify, and distribute.
+- [ ] Shareable scan links
+- [ ] Telegram/Discord webhook alerts
 
 ---
 
@@ -222,9 +184,7 @@ MIT License — free to use, modify, and distribute.
 
 Built with 🔥 by **SONALI**
 
-[![GitHub](https://img.shields.io/badge/GitHub-@kondapuresonali-black?style=flat-square&logo=github)](https://github.com/kondapuresonali)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=flat-square&logo=linkedin)](https://linkedin.com/in/yourusername)
 
 ---
 
-> ⭐ Star this repo if TrapNet helped you learn something new!
+> ⭐ Star this repo if TrapNet helped you!
