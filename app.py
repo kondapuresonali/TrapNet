@@ -47,16 +47,34 @@ TRUSTED_DOMAINS = [b + ".com" for b in TRUSTED_BRANDS] + [
 ]
 
 # ── Load ML model ─────────────────────────────────────────────────────
+import numpy as np
+
+def extract_features(url):
+    parsed = urlparse(url)
+    domain = parsed.netloc.lower()
+    suspicious_keywords = ["login","verify","secure","update","confirm","account","signin",
+        "alert","warning","bank","pay","free","prize","winner","reward",
+        "password","otp","kyc","blocked","locked","suspended","urgent"]
+    bad_tlds   = [".xyz",".tk",".ml",".ga",".cf",".top",".click",".pw",".work",".gq"]
+    shorteners = ["bit.ly","tinyurl","t.co","goo.gl","ow.ly"]
+    return [
+        len(url), len(domain),
+        int(url.startswith("https")),
+        int(bool(re.search(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}', url))),
+        int("@" in url), url.count("-"), url.count("."),
+        max(0, len(domain.split(".")) - 2),
+        sum(c.isdigit() for c in url),
+        sum(1 for kw in suspicious_keywords if kw in url.lower()),
+        int(any(url.lower().find(t) > 0 for t in bad_tlds)),
+        int(any(s in url for s in shorteners)),
+    ]
+
 ml_enabled = False
 model = vectorizer = None
 try:
-    model      = pickle.load(open("model.pkl", "rb"))
-    vectorizer = pickle.load(open("vectorizer.pkl", "rb"))
+    model      = pickle.load(open("model/model.pkl", "rb"))
+    vectorizer = pickle.load(open("model/vectorizer.pkl", "rb"))
     ml_enabled = True
-    print("✅ ML model loaded")
-except Exception as e:
-    print(f"⚠  ML model: {e}")
-
 # ── In-memory scan history (last 100 scans) ───────────────────────────
 scan_history = []
 
