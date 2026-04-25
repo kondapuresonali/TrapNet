@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TrapNet — Cyber Intelligence System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="noise"></div>
+<div class="glow-orb"></div>
+
+<div class="wrap">
+
+  <!-- ── HEADER ── -->
+  <header class="header">
+    <div class="logo">
+      <svg class="logo-svg" viewBox="0 0 44 50" fill="none">
+        <path d="M22 2L41 12.5V37.5L22 48L3 37.5V12.5L22 2Z" stroke="#7c5cfc" stroke-width="1.5" fill="rgba(124,92,252,0.06)"/>
+        <path d="M22 10L34 17V31L22 38L10 31V17L22 10Z" stroke="#a78bfa" stroke-width="1" opacity="0.5"/>
+        <circle cx="22" cy="24" r="4" fill="#7c5cfc" opacity="0.8"/>
+      </svg>
+      <div>
+        <h1>TrapNet</h1>
+        <p class="tagline">CYBER INTELLIGENCE SYSTEM v2.0</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── TABS ── -->
+  <nav class="tabs">
+    <button class="tab active" onclick="showTab('scan',this)">🔍 Scan</button>
+    <button class="tab" onclick="showTab('bulk',this)">📋 Bulk Scan</button>
+    <button class="tab" onclick="showTab('history',this)">📊 History</button>
+    <button class="tab" onclick="showTab('precautions',this)">🛡 Precautions</button>
+  </nav>
+
+  <!-- ════════════════ SCAN TAB ════════════════ -->
+  <div id="tab-scan" class="tab-content active">
+
+    <div class="search-card">
+      <div class="input-row">
+        <div class="input-wrap">
+          <span class="input-prefix">URL://</span>
+          <input id="urlInput" type="text"
+            placeholder="enter domain or full URL to scan..."
+            autocomplete="off" spellcheck="false"
+            value="{{ url if url else '' }}"
+          />
+        </div>
+        <button class="btn-scan" id="scanBtn" onclick="doScan()">
+          <span id="btnLabel">Scan URL</span>
+        </button>
+      </div>
+      <button class="btn-sample" onclick="loadSample()">⚡ Try Sample Attack URL</button>
+    </div>
+
+    {% if error %}<div class="alert-error">⚠ {{ error }}</div>{% endif %}
+
+    <!-- ── LOADING OVERLAY ── -->
+    <div class="loading-card" id="loadingCard">
+      <div class="loading-title">
+        <span class="loading-dot"></span>
+        <span id="loadingLabel">Initializing scan...</span>
+      </div>
+      <div class="steps-list" id="stepsList">
+        <div class="step-row" id="s1"><div class="s-dot"></div><span>Submitting to VirusTotal</span></div>
+        <div class="step-row" id="s2"><div class="s-dot"></div><span>Querying 90+ security vendors</span></div>
+        <div class="step-row" id="s3"><div class="s-dot"></div><span>Checking WHOIS domain age</span></div>
+        <div class="step-row" id="s4"><div class="s-dot"></div><span>Running typosquatting detector</span></div>
+        <div class="step-row" id="s5"><div class="s-dot"></div><span>Analyzing ML model</span></div>
+        <div class="step-row" id="s6"><div class="s-dot"></div><span>Generating AI explanation</span></div>
+        <div class="step-row" id="s7"><div class="s-dot"></div><span>Building threat report</span></div>
+      </div>
+      <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+    </div>
+
+    <!-- ── RESULTS ── -->
+    {% if data %}
+    <div class="results-wrap" id="resultsWrap">
+
+      <!-- Verdict -->
+      <div class="verdict-banner verdict-{{ data.status }}">
+        <div class="v-left">
+          <div class="verdict-dot"></div>
+          <span class="verdict-text">
+            {% if data.status=='phishing' %}PHISHING DETECTED
+            {% elif data.status=='suspicious' %}SUSPICIOUS URL
+            {% elif data.status=='low' %}LOW THREAT DETECTED
+            {% else %}URL IS SAFE{% endif %}
+          </span>
+        </div>
+        <div class="v-actions">
+          <button class="btn-export" onclick="exportPDF()">⬇ Export PDF</button>
+        </div>
+      </div>
+
+      <!-- Meta -->
+      <div class="meta-grid">
+        <div class="meta-row"><span class="m-key">URL</span><span class="m-val mono">{{ url }}</span></div>
+        <div class="meta-row"><span class="m-key">DOMAIN</span><span class="m-val mono accent">{{ data.domain }}</span></div>
+        <div class="meta-row"><span class="m-key">SCANNED</span><span class="m-val">{{ data.scan_date }}</span></div>
+        {% if data.whois %}
+        <div class="meta-row">
+          <span class="m-key">DOMAIN AGE</span>
+          <span class="m-val {% if data.whois.new_domain %}warn{% endif %}">
+            {{ data.whois.age_days }} days
+            {% if data.whois.new_domain %} ⚠ NEW DOMAIN{% endif %}
+            (registered {{ data.whois.created }})
+          </span>
+        </div>
+        <div class="meta-row"><span class="m-key">REGISTRAR</span><span class="m-val">{{ data.whois.registrar }}</span></div>
+        {% endif %}
+      </div>
+
+      <!-- Risk bar -->
+      <div class="risk-card">
+        <div class="risk-header">
+          <span class="risk-lbl">THREAT LEVEL: <strong>{{ data.threat_level }}</strong></span>
+          <span class="risk-num">{{ data.risk }}%</span>
+        </div>
+        <div class="risk-track">
+          <div class="risk-fill"></div>
+          <div class="risk-marker" style="left:{{ data.risk }}%"></div>
+        </div>
+        <div class="risk-axis"><span>Safe</span><span>Dangerous</span></div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat stat-{{ 'red' if data.risk>=70 else 'amber' if data.risk>=40 else 'green' }}">
+          <div class="stat-num">{{ data.risk }}%</div>
+          <div class="stat-lbl">Risk Score</div>
+        </div>
+        {% if data.ai_confidence is not none %}
+        <div class="stat stat-purple">
+          <div class="stat-num">{{ data.ai_confidence }}%</div>
+          <div class="stat-lbl">ML Confidence</div>
+        </div>
+        {% endif %}
+        {% if data.vt and not data.vt.scanning %}
+        <div class="stat stat-red">
+          <div class="stat-num">{{ data.vt.malicious }}</div>
+          <div class="stat-lbl">VT Malicious</div>
+        </div>
+        <div class="stat stat-green">
+          <div class="stat-num">{{ data.vt.harmless }}</div>
+          <div class="stat-lbl">VT Harmless</div>
+        </div>
+        <div class="stat stat-muted">
+          <div class="stat-num">{{ data.vt.total }}</div>
+          <div class="stat-lbl">Total Vendors</div>
+        </div>
+        {% endif %}
+        {% if data.typo_matches %}
+        <div class="stat stat-amber">
+          <div class="stat-num">{{ data.typo_matches|length }}</div>
+          <div class="stat-lbl">Typo Matches</div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- AI Explanation -->
+      {% if data.ai_explanation %}
+      <div class="ai-card">
+        <div class="ai-badge">🤖 AI ANALYSIS</div>
+        <p class="ai-text">{{ data.ai_explanation }}</p>
+      </div>
+      {% endif %}
+
+      <!-- Threat analysis -->
+      <div class="analysis-card">
+        <div class="card-title">⬡ THREAT ANALYSIS</div>
+        <ul class="reasons-list">
+          {% for r in data.reasons %}
+          <li class="reason-item">
+            <span class="r-icon">{{ r.icon if r.icon else '•' }}</span>
+            <span class="r-text">{{ r.text if r.text else r }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Typosquatting -->
+      {% if data.typo_matches %}
+      <div class="analysis-card">
+        <div class="card-title">🎯 TYPOSQUATTING ANALYSIS</div>
+        <div class="typo-grid">
+          {% for m in data.typo_matches %}
+          <div class="typo-card">
+            <div class="typo-brand">{{ m.brand }}</div>
+            <div class="typo-bar-wrap">
+              <div class="typo-bar" style="width:{{ m.score }}%"></div>
+            </div>
+            <div class="typo-score">{{ m.score }}% similar</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- WHOIS detail -->
+      {% if data.whois %}
+      <div class="analysis-card">
+        <div class="card-title">📅 WHOIS / DOMAIN INTELLIGENCE</div>
+        <div class="detail-rows">
+          <div class="d-row"><span class="d-key">Domain Age</span><span class="d-val {% if data.whois.new_domain %}warn{% endif %}">{{ data.whois.age_days }} days {% if data.whois.new_domain %}(⚠ Suspicious — less than 30 days){% endif %}</span></div>
+          <div class="d-row"><span class="d-key">Registration Date</span><span class="d-val">{{ data.whois.created }}</span></div>
+          <div class="d-row"><span class="d-key">Registrar</span><span class="d-val">{{ data.whois.registrar }}</span></div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- VT report -->
+      {% if data.vt and not data.vt.scanning %}
+      <div class="analysis-card">
+        <div class="card-title">🛡 VIRUSTOTAL REPORT</div>
+        {% if data.vt.flagged_by %}
+        <div class="d-row"><span class="d-key">Flagged By</span>
+          <div class="tag-row">{% for e in data.vt.flagged_by %}<span class="tag tag-red">{{ e }}</span>{% endfor %}</div>
+        </div>
+        {% endif %}
+        {% if data.vt.categories %}
+        <div class="d-row" style="margin-top:8px"><span class="d-key">Categories</span>
+          <div class="tag-row">{% for c in data.vt.categories %}<span class="tag tag-purple">{{ c }}</span>{% endfor %}</div>
+        </div>
+        {% endif %}
+        <a class="vt-link" href="{{ data.vt.vt_link }}" target="_blank">↗ View full report on VirusTotal</a>
+      </div>
+      {% elif data.vt and data.vt.scanning %}
+      <div class="analysis-card info-card">🔄 URL submitted to VirusTotal. Rescan in ~30 seconds for full vendor results.</div>
+      {% elif not data.vt_enabled %}
+      <div class="analysis-card info-card">⚙️ Add your free VirusTotal API key in <code>app.py</code> to see 90+ vendor results. Get it free at <a href="https://virustotal.com" target="_blank">virustotal.com</a></div>
+      {% endif %}
+
+    </div><!-- /results-wrap -->
+    {% endif %}
+
+  </div><!-- /scan tab -->
+
+
+  <!-- ════════════════ BULK SCAN TAB ════════════════ -->
+  <div id="tab-bulk" class="tab-content">
+    <div class="search-card">
+      <div class="card-title" style="margin-bottom:.75rem">⬡ BULK URL SCANNER</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Paste up to 20 URLs, one per line</p>
+      <textarea id="bulkInput" class="bulk-textarea" placeholder="http://paypal-login-secure.xyz&#10;http://amazon-verify.tk&#10;https://google.com"></textarea>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn-scan" onclick="doBulkScan()" id="bulkBtn">Scan All URLs</button>
+        <button class="btn-sample" style="flex:0;padding:0 16px" onclick="loadBulkSample()">Load Samples</button>
+      </div>
+    </div>
+
+    <div id="bulkLoading" class="loading-card" style="display:none">
+      <div class="loading-title"><span class="loading-dot"></span><span id="bulkLoadingLabel">Scanning URLs...</span></div>
+      <div class="progress-track"><div class="progress-bar" id="bulkProgressBar"></div></div>
+    </div>
+
+    <div id="bulkResults"></div>
+  </div>
+
+
+  <!-- ════════════════ HISTORY TAB ════════════════ -->
+  <div id="tab-history" class="tab-content">
+    <div class="history-topbar">
+      <div class="card-title">⬡ SCAN HISTORY</div>
+      <button class="btn-clear" onclick="clearServerHistory()">Clear All</button>
+    </div>
+
+    <!-- Chart -->
+    <div class="chart-card">
+      <div class="chart-title">Threat Distribution</div>
+      <div class="chart-wrap">
+        <canvas id="historyChart" height="180"></canvas>
+      </div>
+    </div>
+
+    <div id="historyList" class="history-list"></div>
+    <p id="historyEmpty" class="empty-msg" style="display:none">No scans yet. Run a scan to see history here.</p>
+  </div>
+
+
+  <!-- ════════════════ PRECAUTIONS TAB ════════════════ -->
+  <div id="tab-precautions" class="tab-content">
+    <div class="card-title" style="margin-bottom:1rem">⬡ SAFETY PRECAUTIONS</div>
+    <div class="tips-grid">
+      <div class="tip-card"><div class="tip-icon">🔒</div><div class="tip-title">Always check HTTPS</div><div class="tip-body">Never enter passwords or payment info on HTTP sites. The padlock must be visible.</div></div>
+      <div class="tip-card"><div class="tip-icon">🔍</div><div class="tip-title">Verify domain spelling</div><div class="tip-body">Attackers use "paypa1.com" or "arnazon.in". Check every letter before clicking.</div></div>
+      <div class="tip-card"><div class="tip-icon">🚫</div><div class="tip-title">Never click unknown links</div><div class="tip-body">If someone sends a link unexpectedly via SMS or WhatsApp — scan it here first.</div></div>
+      <div class="tip-card"><div class="tip-icon">⏰</div><div class="tip-title">Ignore urgency tactics</div><div class="tip-body">"Account suspended in 24 hours!" is a classic phishing pressure tactic. Pause and verify.</div></div>
+      <div class="tip-card"><div class="tip-icon">🔐</div><div class="tip-title">Enable 2-Factor Auth</div><div class="tip-body">Even if your password leaks, 2FA stops attackers from accessing your accounts.</div></div>
+      <div class="tip-card"><div class="tip-icon">📅</div><div class="tip-title">Check domain age</div><div class="tip-body">Phishing domains are usually less than 30 days old. TrapNet checks this automatically.</div></div>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+
+<!-- Hidden form for page-reload scan (Jinja rendering) -->
+<form id="hiddenForm" method="POST" action="/analyze" style="display:none">
+  <input id="hiddenUrl" name="url"/>
+</form>
+
+<!-- Store last result for PDF export -->
+<script>
+// ── Embed server-side data for JS use ──────────────────────────────
+{% if data %}
+window.__LAST_SCAN__ = {{ data | tojson }};
+window.__LAST_URL__  = {{ url | tojson }};
+{% else %}
+window.__LAST_SCAN__ = null;
+window.__LAST_URL__  = null;
+{% endif %}
+
+// ── Tab switching ──────────────────────────────────────────────────
+function showTab(name, btn) {
+  document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.getElementById("tab-" + name).classList.add("active");
+  btn.classList.add("active");
+  if (name === "history") loadHistory();
+}
+
+// ── Sample URLs ────────────────────────────────────────────────────
+const SAMPLES = [
+  "http://paypal-login-secure.xyz",
+  "http://amazon-account-verify.tk",
+  "http://192.168.1.1/login/secure",
+  "http://sbi-netbanking-verify.ml"
+];
+
+function loadSample() {
+  document.getElementById("urlInput").value = SAMPLES[Math.floor(Math.random()*SAMPLES.length)];
+}
+
+// ── Animated scan steps ────────────────────────────────────────────
+let stepTimer = null;
+function animateSteps() {
+  const steps = ["s1","s2","s3","s4","s5","s6","s7"];
+  const pcts  = [12, 25, 40, 55, 68, 82, 95];
+  let i = 0;
+  steps.forEach(s => {
+    const el = document.getElementById(s);
+    if (el) el.className = "step-row";
+  });
+  function next() {
+    if (i > 0) {
+      const prev = document.getElementById(steps[i-1]);
+      if (prev) prev.className = "step-row done";
+    }
+    if (i < steps.length) {
+      const cur = document.getElementById(steps[i]);
+      if (cur) cur.className = "step-row active";
+      document.getElementById("progressBar").style.width = pcts[i] + "%";
+      i++;
+      stepTimer = setTimeout(next, 800);
+    }
+  }
+  next();
+}
+
+function stopSteps() {
+  if (stepTimer) clearTimeout(stepTimer);
+  document.getElementById("progressBar").style.width = "100%";
+}
+
+// ── Single URL scan ────────────────────────────────────────────────
+function doScan() {
+  const url = document.getElementById("urlInput").value.trim();
+  if (!url) { alert("Please enter a URL"); return; }
+  document.getElementById("scanBtn").disabled = true;
+  document.getElementById("btnLabel").textContent = "Scanning...";
+  document.getElementById("loadingCard").style.display = "block";
+  const existing = document.getElementById("resultsWrap");
+  if (existing) existing.style.display = "none";
+  animateSteps();
+  // Submit via form for Jinja rendering
+  document.getElementById("hiddenUrl").value = url;
+  setTimeout(() => {
+    stopSteps();
+    document.getElementById("hiddenForm").submit();
+  }, 3200);
+}
+
+// ── Bulk scan ──────────────────────────────────────────────────────
+function loadBulkSample() {
+  document.getElementById("bulkInput").value =
+    "http://paypal-login-secure.xyz\nhttp://amazon-verify.tk\nhttps://google.com\nhttps://github.com\nhttp://sbi-netbanking.ml";
+}
+
+async function doBulkScan() {
+  const raw  = document.getElementById("bulkInput").value.trim();
+  const urls = raw.split("\n").map(u=>u.trim()).filter(Boolean);
+  if (!urls.length) { alert("Please enter at least one URL"); return; }
+
+  const btn = document.getElementById("bulkBtn");
+  btn.disabled = true; btn.textContent = "Scanning...";
+
+  const loading = document.getElementById("bulkLoading");
+  loading.style.display = "block";
+  document.getElementById("bulkResults").innerHTML = "";
+
+  // Animate bulk progress
+  let pct = 0;
+  const prog = document.getElementById("bulkProgressBar");
+  const ticker = setInterval(() => {
+    pct = Math.min(pct + 3, 90);
+    prog.style.width = pct + "%";
+  }, 200);
+
+  try {
+    const resp = await fetch("/bulk-scan", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ urls })
+    });
+    const data = await resp.json();
+    clearInterval(ticker);
+    prog.style.width = "100%";
+    setTimeout(() => { loading.style.display = "none"; }, 400);
+    renderBulkResults(data.results);
+  } catch(e) {
+    clearInterval(ticker);
+    loading.style.display = "none";
+    document.getElementById("bulkResults").innerHTML =
+      `<div class="alert-error">⚠ Scan failed: ${e.message}</div>`;
+  }
+  btn.disabled = false; btn.textContent = "Scan All URLs";
+}
+
+function renderBulkResults(results) {
+  const safe = results.filter(r=>r.status==="safe").length;
+  const danger = results.filter(r=>r.status==="phishing").length;
+  const sus = results.filter(r=>r.status==="suspicious"||r.status==="low").length;
+
+  let html = `
+    <div class="bulk-summary">
+      <div class="bs-stat bs-green"><div class="bs-num">${safe}</div><div class="bs-lbl">Safe</div></div>
+      <div class="bs-stat bs-amber"><div class="bs-num">${sus}</div><div class="bs-lbl">Suspicious</div></div>
+      <div class="bs-stat bs-red"><div class="bs-num">${danger}</div><div class="bs-lbl">Phishing</div></div>
+      <div class="bs-stat bs-muted"><div class="bs-num">${results.length}</div><div class="bs-lbl">Total</div></div>
+    </div>
+    <div class="bulk-list">`;
+
+  results.forEach(r => {
+    const cls = r.status==="phishing"?"brow-red":r.status==="suspicious"||r.status==="low"?"brow-amber":"brow-green";
+    const icon = r.status==="phishing"?"🔴":r.status==="suspicious"||r.status==="low"?"🟡":"🟢";
+    html += `
+      <div class="bulk-row ${cls}">
+        <span class="br-icon">${icon}</span>
+        <span class="br-url mono">${r.url}</span>
+        <span class="br-risk">${r.risk||0}%</span>
+        <span class="br-level">${r.threat_level||"—"}</span>
+      </div>`;
+  });
+  html += `</div>`;
+  document.getElementById("bulkResults").innerHTML = html;
+}
+
+// ── History ────────────────────────────────────────────────────────
+let histChart = null;
+
+async function loadHistory() {
+  try {
+    const resp = await fetch("/history");
+    const data = await resp.json();
+    renderHistory(data.history);
+  } catch(e) {
+    // fallback to localStorage
+    const h = JSON.parse(localStorage.getItem("tn_history")||"[]");
+    renderHistory(h);
+  }
+}
+
+function renderHistory(items) {
+  const list  = document.getElementById("historyList");
+  const empty = document.getElementById("historyEmpty");
+  list.innerHTML = "";
+
+  // Chart
+  const counts = { safe:0, low:0, suspicious:0, phishing:0 };
+  items.forEach(i => { if(counts[i.status]!==undefined) counts[i.status]++; });
+
+  const ctx = document.getElementById("historyChart").getContext("2d");
+  if (histChart) histChart.destroy();
+  histChart = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ["Safe","Low","Suspicious","Phishing"],
+      datasets:[{
+        data: [counts.safe, counts.low, counts.suspicious, counts.phishing],
+        backgroundColor:["#00e096","#ffb344","#ff8c44","#ff4060"],
+        borderWidth: 0,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position:"right", labels:{ color:"#8b8aa0", font:{size:12}, padding:16 } }
+      },
+      cutout: "65%"
+    }
+  });
+
+  if (!items.length) {
+    empty.style.display = "block"; return;
+  }
+  empty.style.display = "none";
+
+  items.slice(0,30).forEach(item => {
+    const icon = item.status==="phishing"?"🔴":item.status==="suspicious"||item.status==="low"?"🟡":"🟢";
+    const li = document.createElement("div");
+    li.className = "history-item";
+    li.innerHTML = `
+      <span class="h-icon">${icon}</span>
+      <div class="h-info">
+        <div class="h-url mono">${item.url}</div>
+        <div class="h-meta">${item.threat_level||"—"} · ${item.scan_date||""}</div>
+      </div>
+      <span class="h-risk ${item.status==="phishing"?"red":item.status==="suspicious"?"amber":"green"}">${item.risk||0}%</span>
+    `;
+    list.appendChild(li);
+  });
+}
+
+async function clearServerHistory() {
+  await fetch("/history/clear", { method:"POST" });
+  localStorage.removeItem("tn_history");
+  loadHistory();
+}
+
+// ── PDF Export ─────────────────────────────────────────────────────
+async function exportPDF() {
+  if (!window.__LAST_SCAN__) { alert("No scan data to export"); return; }
+  const btn = document.querySelector(".btn-export");
+  btn.textContent = "⏳ Generating...";
+  btn.disabled = true;
+  try {
+    const resp = await fetch("/export-pdf", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ url: window.__LAST_URL__, data: window.__LAST_SCAN__ })
+    });
+    if (!resp.ok) {
+      const e = await resp.json();
+      alert("PDF error: " + (e.error||"Unknown"));
+      return;
+    }
+    const blob = await resp.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `trapnet_report_${Date.now()}.pdf`;
+    a.click();
+  } catch(e) {
+    alert("Export failed: " + e.message);
+  }
+  btn.textContent = "⬇ Export PDF";
+  btn.disabled = false;
+}
+
+// ── Save current scan to localStorage history ──────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  const inp = document.getElementById("urlInput");
+  if (inp) inp.addEventListener("keydown", e => { if(e.key==="Enter") doScan(); });
+
+  if (window.__LAST_URL__) {
+    let h = JSON.parse(localStorage.getItem("tn_history")||"[]");
+    h = h.filter(i=>i.url !== window.__LAST_URL__);
+    h.unshift({ url: window.__LAST_URL__, ...(window.__LAST_SCAN__||{}) });
+    localStorage.setItem("tn_history", JSON.stringify(h.slice(0,50)));
+  }
+});
+</script>
+
+</body>
+</html>
