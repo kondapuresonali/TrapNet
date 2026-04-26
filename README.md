@@ -79,7 +79,7 @@ TrapNet/
 
 ### 1. Clone the repo
 ```bash
-git clone https://github.com/YOUR_USERNAME/trapnet.git
+git clone https://github.com/kondapuresonali/TrapNet.git
 cd trapnet
 ```
 
@@ -184,6 +184,9 @@ Capped at 100
 
 Built with 🔥 by **SONALI**
 
+
+[![GitHub](https://img.shields.io/badge/GitHub-@kondapuresonali-black?style=flat-square&logo=github)](https://github.com/kondapuresonali)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=flat-square&logo=linkedin)](https://linkedin.com/in/sonali-kondapure)
 
 ---
 
