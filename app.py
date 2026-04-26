@@ -503,6 +503,11 @@ def export_pdf():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.after_request
+def add_header(response):
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    return response
 
 if __name__ == "__main__":
     print("🕸  TrapNet v2 → http://localhost:5000")
