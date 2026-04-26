@@ -3,21 +3,21 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:       #080a14;
-  --bg2:      #0e1122;
-  --bg3:      #13162d;
-  --border:   rgba(108,85,220,.18);
-  --border2:  rgba(108,85,220,.38);
-  --purple:   #7c5cfc;
-  --purple-lt:#a78bfa;
-  --purple-dm:rgba(124,92,252,.10);
-  --teal:     #00d4aa;
+  --bg:       #000000;
+  --bg2:      #0a0e1a;
+  --bg3:      #0f1420;
+  --border:   rgba(30,120,255,.18);
+  --border2:  rgba(30,120,255,.38);
+  --purple:   #1a78ff;
+  --purple-lt:#60a8ff;
+  --purple-dm:rgba(30,120,255,.10);
+  --teal:     #00d4ff;
   --red:      #ff4060;
   --amber:    #ffb344;
   --green:    #00e096;
-  --text:     #dddaf0;
-  --muted:    #7a7898;
-  --dim:      #3d3b58;
+  --text:     #ffffff;
+  --muted:    #8899bb;
+  --dim:      #445577;
   --mono:     'Space Mono', monospace;
   --sans:     'Syne', sans-serif;
 }
@@ -27,8 +27,8 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); min-
 
 body::before {
   content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
-  background-image: linear-gradient(rgba(108,85,220,.03) 1px,transparent 1px),
-                    linear-gradient(90deg,rgba(108,85,220,.03) 1px,transparent 1px);
+  background-image: linear-gradient(rgba(30,120,255,.03) 1px,transparent 1px),
+                  linear-gradient(90deg,rgba(30,120,255,.03) 1px,transparent 1px);
   background-size: 36px 36px;
 }
 
@@ -41,7 +41,7 @@ body::before {
 .glow-orb {
   position:fixed; top:-200px; left:50%; transform:translateX(-50%);
   width:800px; height:400px;
-  background:radial-gradient(ellipse,rgba(124,92,252,.12) 0%,transparent 70%);
+  background:radial-gradient(ellipse,rgba(30,120,255,.12) 0%,transparent 70%);
   pointer-events:none; z-index:0;
 }
 
